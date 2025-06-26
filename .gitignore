@@ -19,7 +19,7 @@ build/
 .env.test.local
 .env.production.local
 # Example environment file
-!env.example
+
 
 
 # Database

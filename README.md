@@ -1,4 +1,4 @@
-# Dadtroid Portfolio Website
+# Daniel Hill Portfolio Website
 
 A modern, full-stack portfolio website built with React, Node.js, Express, and MySQL.
 
