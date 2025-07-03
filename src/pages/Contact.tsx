@@ -1,4 +1,4 @@
-import ActorGrid from '../components/ActorGrid';
+import { ActorGrid } from '@/shared/components';
 
 const Contact = () => {
   return (

@@ -51,7 +51,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
         {description && <p className='card__description'>{description}</p>}
 
-        {technologies.length > 0 && (
+        {Array.isArray(technologies) && technologies.length > 0 && (
           <div className='card__technologies'>
             {technologies.slice(0, 3).map((tech, index) => (
               <span key={index} className='card__technology'>

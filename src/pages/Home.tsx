@@ -1,6 +1,59 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import {
+  Button,
+  ProjectCard,
+  Badge,
+  Divider,
+  ProgressBar,
+} from '@/shared/components';
 
 const Home = () => {
+  // Sample featured projects data
+  const featuredProjects = [
+    {
+      id: 1,
+      title: 'Portfolio Website',
+      description:
+        'A modern, responsive portfolio built with React and TypeScript, featuring smooth animations and a clean design.',
+      image: '/src/assets/react.svg',
+      category: 'web',
+      technologies: ['React', 'TypeScript', 'Tailwind CSS'],
+      featured: true,
+      links: {
+        live: '#',
+        github: '#',
+      },
+    },
+    {
+      id: 2,
+      title: '3D Animation Project',
+      description:
+        'Interactive 3D scene created with Three.js, showcasing advanced lighting and particle effects.',
+      image: '/src/assets/space_hero.gif',
+      category: '3d',
+      technologies: ['Three.js', 'WebGL', 'JavaScript'],
+      featured: true,
+      links: {
+        live: '#',
+        demo: '#',
+      },
+    },
+    {
+      id: 3,
+      title: 'Mobile App Design',
+      description:
+        'UI/UX design for a mobile application, focusing on user experience and modern design principles.',
+      image: '/src/assets/react.svg',
+      category: 'mobile',
+      technologies: ['Figma', 'Adobe XD', 'Prototyping'],
+      featured: false,
+      links: {
+        live: '#',
+      },
+    },
+  ];
+
   return (
     <div className='pt-16'>
       {/* Hero Section */}
@@ -21,20 +74,16 @@ const Home = () => {
               and interactive animations
             </p>
             <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className='btn-primary text-lg px-8 py-3'
-              >
-                View Projects
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className='btn-outline text-lg px-8 py-3'
-              >
-                Get in Touch
-              </motion.button>
+              <Link to='/projects'>
+                <Button variant='primary' size='lg'>
+                  View Projects
+                </Button>
+              </Link>
+              <Link to='/contact'>
+                <Button variant='outline' size='lg'>
+                  Get in Touch
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -49,7 +98,10 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className='text-center mb-16'
           >
-            <h2 className='text-4xl font-bold mb-4'>Featured Work</h2>
+            <Badge variant='primary' size='lg' className='mb-4'>
+              Featured Work
+            </Badge>
+            <h2 className='text-4xl font-bold mb-4'>Latest Projects</h2>
             <p className='text-gray-400 text-lg max-w-2xl mx-auto'>
               Explore my latest projects showcasing web development, 3D
               modeling, and creative digital solutions
@@ -57,22 +109,76 @@ const Home = () => {
           </motion.div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {/* Placeholder project cards */}
-            {[1, 2, 3].map(item => (
+            {featuredProjects.map((project, index) => (
               <motion.div
-                key={item}
+                key={project.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: item * 0.1 }}
-                whileHover={{ y: -10 }}
-                className='card group cursor-pointer'
+                transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <div className='aspect-video bg-dark-700 rounded-lg mb-4 group-hover:bg-primary-600/20 transition-colors duration-300'></div>
-                <h3 className='text-xl font-semibold mb-2'>Project {item}</h3>
-                <p className='text-gray-400'>
-                  A creative project showcasing modern web development and
-                  design principles.
-                </p>
+                <ProjectCard
+                  title={project.title}
+                  description={project.description}
+                  image={project.image}
+                  category={project.category}
+                  technologies={project.technologies}
+                  links={project.links}
+                  featured={project.featured}
+                  onClick={() =>
+                    (window.location.href = `/projects/${project.id}`)
+                  }
+                />
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className='text-center mt-12'
+          >
+            <Divider size='lg' />
+            <Link to='/projects'>
+              <Button variant='secondary' size='lg' className='mt-8'>
+                View All Projects
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Skills Section */}
+      <section className='section-padding'>
+        <div className='container-custom'>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className='text-center mb-16'
+          >
+            <h2 className='text-4xl font-bold mb-4'>Skills & Technologies</h2>
+            <p className='text-gray-400 text-lg max-w-2xl mx-auto'>
+              Proficient in modern web technologies and creative tools
+            </p>
+          </motion.div>
+
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-6'>
+            {[
+              { name: 'React', level: 90 },
+              { name: 'TypeScript', level: 85 },
+              { name: 'Three.js', level: 80 },
+              { name: 'Node.js', level: 75 },
+            ].map((skill, index) => (
+              <motion.div
+                key={skill.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className='text-center'
+              >
+                <h3 className='font-semibold mb-2'>{skill.name}</h3>
+                <ProgressBar value={skill.level} variant='primary' size='md' />
               </motion.div>
             ))}
           </div>
