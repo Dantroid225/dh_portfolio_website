@@ -59,8 +59,8 @@ const Footer = () => {
             <h3 className='text-lg font-semibold text-white'>Quick Links</h3>
             <ul className='space-y-2'>
               {[
-                { name: 'Projects', href: '/projects' },
-                { name: 'About', href: '/about' },
+                { name: 'Experience', href: '/about' },
+                { name: 'Art', href: '/art' },
                 { name: 'Contact', href: '/contact' },
               ].map(link => (
                 <li key={link.name}>
@@ -98,24 +98,10 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className='border-t border-dark-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0'>
+        <div className='border-t border-dark-700 mt-8 pt-8 flex justify-center'>
           <p className='text-gray-400 text-sm'>
             © {currentYear} Daniel Hill. All rights reserved.
           </p>
-          <div className='flex space-x-6 text-sm'>
-            <a
-              href='/privacy'
-              className='text-gray-400 hover:text-primary-400 transition-colors duration-200'
-            >
-              Privacy Policy
-            </a>
-            <a
-              href='/terms'
-              className='text-gray-400 hover:text-primary-400 transition-colors duration-200'
-            >
-              Terms of Service
-            </a>
-          </div>
         </div>
       </div>
     </footer>
