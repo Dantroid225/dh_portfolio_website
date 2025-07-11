@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../shared/hooks/useTheme';
-import { useAuth } from '@components/context/AuthContext';
+import { useAuth } from '@/shared/hooks';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

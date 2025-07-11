@@ -1,7 +1,52 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Badge, Card, Divider, Button } from '@/shared/components';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<
+    'idle' | 'success' | 'error'
+  >('idle');
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      // Create mailto link with form data
+      const mailtoLink = `mailto:dan@daniel-hill.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+      )}`;
+
+      // Open default email client
+      window.open(mailtoLink, '_blank');
+
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className='pt-16 section-padding'>
       <div className='container-custom'>
@@ -183,67 +228,106 @@ const Contact = () => {
               <div className='p-8'>
                 <h2 className='text-2xl font-bold mb-6'>Send a Message</h2>
                 <p className='text-gray-400 mb-6'>
-                  Contact form coming soon. For now, please reach out via email
-                  or LinkedIn.
+                  Fill out the form below and I'll get back to you as soon as
+                  possible.
                 </p>
 
-                <div className='space-y-4'>
+                {submitStatus === 'success' && (
+                  <div className='mb-6 p-4 bg-green-900/20 border border-green-500 rounded-lg'>
+                    <p className='text-green-400 text-sm'>
+                      ✓ Message prepared! Your email client should open with the
+                      message ready to send.
+                    </p>
+                  </div>
+                )}
+
+                {submitStatus === 'error' && (
+                  <div className='mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg'>
+                    <p className='text-red-400 text-sm'>
+                      ✗ There was an error. Please try again or contact me
+                      directly at dan@daniel-hill.com
+                    </p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className='space-y-4'>
                   <div>
                     <label className='block text-sm font-medium text-gray-300 mb-2'>
-                      Name
+                      Name *
                     </label>
                     <input
                       type='text'
+                      name='name'
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
                       className='w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors'
                       placeholder='Your name'
-                      disabled
                     />
                   </div>
 
                   <div>
                     <label className='block text-sm font-medium text-gray-300 mb-2'>
-                      Email
+                      Email *
                     </label>
                     <input
                       type='email'
+                      name='email'
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
                       className='w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors'
                       placeholder='your.email@example.com'
-                      disabled
                     />
                   </div>
 
                   <div>
                     <label className='block text-sm font-medium text-gray-300 mb-2'>
-                      Subject
+                      Subject *
                     </label>
                     <input
                       type='text'
+                      name='subject'
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required
                       className='w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors'
                       placeholder='What can I help you with?'
-                      disabled
                     />
                   </div>
 
                   <div>
                     <label className='block text-sm font-medium text-gray-300 mb-2'>
-                      Message
+                      Message *
                     </label>
                     <textarea
+                      name='message'
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
                       rows={6}
                       className='w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500 transition-colors resize-none'
                       placeholder='Tell me about your project or opportunity...'
-                      disabled
                     />
                   </div>
 
                   <Button
+                    type='submit'
                     variant='primary'
                     size='lg'
                     className='w-full'
-                    disabled
+                    disabled={isSubmitting}
                   >
-                    Send Message (Coming Soon)
+                    {isSubmitting ? 'Preparing Email...' : 'Send Message'}
                   </Button>
+                </form>
+
+                <div className='mt-6 p-4 bg-dark-700 rounded-lg'>
+                  <p className='text-gray-400 text-sm'>
+                    <strong>Note:</strong> This form will open your default
+                    email client with a pre-filled message to
+                    dan@daniel-hill.com
+                  </p>
                 </div>
               </div>
             </Card>
