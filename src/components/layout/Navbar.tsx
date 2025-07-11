@@ -1,28 +1,24 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '@components/context/ThemeContext';
-import { useAuth } from '@components/context/AuthContext';
+import { useTheme } from '../../shared/hooks/useTheme';
+import { useAuth } from '@/shared/hooks';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAdmin } = useAuth();
   const location = useLocation();
 
   const navItems = [
     { path: '/', label: 'Home' },
-    { path: '/projects', label: 'Projects' },
-    { path: '/about', label: 'About' },
+    // { path: '/projects', label: 'Projects' }, // Hidden for soft launch
+    { path: '/about', label: 'Experience' },
+    { path: '/art', label: 'Art' },
     { path: '/contact', label: 'Contact' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleLogout = () => {
-    logout();
-    setIsOpen(false);
-  };
 
   return (
     <nav className='fixed top-0 left-0 right-0 z-50 bg-dark-900/80 backdrop-blur-md border-b border-dark-700'>

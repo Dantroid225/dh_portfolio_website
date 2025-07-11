@@ -11,6 +11,7 @@ import projectRoutes from './routes/projects.js';
 import contactRoutes from './routes/contact.js';
 import authRoutes from './routes/auth.js';
 import uploadRoutes from './routes/upload.js';
+import actorRoutes from './routes/actors.js';
 
 // Import database connection
 import { connectDB } from './config/database.js';
@@ -70,6 +71,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/actors', actorRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
