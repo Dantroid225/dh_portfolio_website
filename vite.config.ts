@@ -35,7 +35,6 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           animation: ['framer-motion'],
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
         },
       },
     },
