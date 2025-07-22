@@ -2,12 +2,10 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../shared/hooks/useTheme';
-import { useAuth } from '@/shared/hooks';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { isAdmin } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -57,20 +55,6 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
-
-            {/* Admin Link */}
-            {isAdmin && (
-              <Link
-                to='/admin'
-                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                  isActive('/admin')
-                    ? 'text-secondary-400'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                Admin
-              </Link>
-            )}
 
             {/* Theme Toggle */}
             <button
@@ -160,20 +144,6 @@ const Navbar = () => {
                     {item.label}
                   </Link>
                 ))}
-
-                {isAdmin && (
-                  <Link
-                    to='/admin'
-                    onClick={() => setIsOpen(false)}
-                    className={`block px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                      isActive('/admin')
-                        ? 'text-secondary-400 bg-dark-800'
-                        : 'text-gray-300 hover:text-white hover:bg-dark-800'
-                    }`}
-                  >
-                    Admin
-                  </Link>
-                )}
 
                 {/* Theme Toggle Mobile */}
                 <button

@@ -8,37 +8,32 @@ import Home from '@pages/Home';
 import About from '@pages/About';
 import Contact from '@pages/Contact';
 import Art from '@pages/Art';
-import Admin from '@pages/Admin';
 import NotFound from '@pages/NotFound';
 import { ThemeProvider } from '@components/context/ThemeContext';
-import { AuthProvider } from '@components/context/AuthContext';
 
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <div className='min-h-screen bg-dark-900 text-white'>
-            <Navbar />
-            <main className='flex-1'>
-              <AnimatePresence mode='wait'>
-                <Routes>
-                  <Route path='/' element={<Home />} />
-                  {/* Projects routes hidden for soft launch */}
-                  {/* <Route path='/projects' element={<Projects />} /> */}
-                  {/* <Route path='/projects/:id' element={<ProjectDetail />} /> */}
-                  <Route path='/about' element={<About />} />
-                  <Route path='/contact' element={<Contact />} />
-                  <Route path='/art' element={<Art />} />
-                  <Route path='/admin' element={<Admin />} />
-                  <Route path='*' element={<NotFound />} />
-                </Routes>
-              </AnimatePresence>
-            </main>
-            <Footer />
-          </div>
-        </Router>
-      </AuthProvider>
+      <Router>
+        <div className='min-h-screen bg-dark-900 text-white'>
+          <Navbar />
+          <main className='flex-1'>
+            <AnimatePresence mode='wait'>
+              <Routes>
+                <Route path='/' element={<Home />} />
+                {/* Projects routes hidden for soft launch */}
+                {/* <Route path='/projects' element={<Projects />} /> */}
+                {/* <Route path='/projects/:id' element={<ProjectDetail />} /> */}
+                <Route path='/about' element={<About />} />
+                <Route path='/contact' element={<Contact />} />
+                <Route path='/art' element={<Art />} />
+                <Route path='*' element={<NotFound />} />
+              </Routes>
+            </AnimatePresence>
+          </main>
+          <Footer />
+        </div>
+      </Router>
     </ThemeProvider>
   );
 }

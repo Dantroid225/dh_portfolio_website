@@ -18,8 +18,6 @@ A modern, full-stack portfolio website built with React, Node.js, Express, and M
 
 - **Node.js** with Express
 - **MySQL** database
-- **JWT** for authentication
-- **Multer** for file uploads
-- **Sharp** for image processing
 - **Helmet** for security
 - **CORS** for cross-origin requests
+- **Rate limiting** for API protection

@@ -9,9 +9,6 @@ import { fileURLToPath } from 'url';
 // Import routes
 import projectRoutes from './routes/projects.js';
 import contactRoutes from './routes/contact.js';
-import authRoutes from './routes/auth.js';
-import uploadRoutes from './routes/upload.js';
-import actorRoutes from './routes/actors.js';
 
 // Import database connection
 import { connectDB } from './config/database.js';
@@ -63,15 +60,9 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // API routes
 app.use('/api/projects', projectRoutes);
 app.use('/api/contact', contactRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/actors', actorRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -79,6 +70,7 @@ app.get('/api/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
+    database: process.env.SKIP_DB === 'true' ? 'skipped' : 'connected',
   });
 });
 
@@ -102,8 +94,12 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDB();
+    // Connect to database (skip for soft launch if no DB)
+    if (process.env.SKIP_DB !== 'true') {
+      await connectDB();
+    } else {
+      console.log('⚠️ Database connection skipped for soft launch');
+    }
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

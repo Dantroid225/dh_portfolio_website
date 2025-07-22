@@ -1,21 +1,60 @@
 import express from 'express';
-import { getDB } from '../config/database.js';
+import {
+  projectSchemas,
+  validateRequest,
+  validateIdParam,
+  validatePaginationParams,
+  validateSearchParams,
+  sanitizeObject,
+} from '../utils/validation.js';
+import {
+  getAllProjects,
+  getFeaturedProjects,
+  getProjectsByCategory,
+  searchProjects,
+  getProjectById,
+  getProjectBySlug,
+  createProject,
+  updateProject,
+  deleteProject,
+  getProjectStats,
+} from '../services/databaseService.js';
 
 const router = express.Router();
 
-// Get all projects
-router.get('/', async (req, res) => {
+// =====================================================
+// PUBLIC ROUTES
+// =====================================================
+
+// Get all projects with pagination and filtering
+router.get('/', validatePaginationParams, async (req, res) => {
   try {
-    const db = getDB();
-    const [rows] = await db.execute(`
-      SELECT * FROM projects 
-      ORDER BY featured DESC, created_at DESC
-    `);
+    const { limit, offset, category, featured, published } = req.query;
+
+    const result = await getAllProjects({
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      category,
+      featured: featured === 'true',
+      published: published === 'true',
+    });
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error,
+      });
+    }
 
     res.json({
       success: true,
-      data: rows,
-      count: rows.length,
+      data: result.data,
+      count: result.count,
+      pagination: {
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        hasMore: result.count === parseInt(limit),
+      },
     });
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -26,50 +65,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get projects by category
-router.get('/category/:category', async (req, res) => {
-  try {
-    const { category } = req.params;
-    const db = getDB();
-
-    const [rows] = await db.execute(
-      `
-      SELECT * FROM projects 
-      WHERE category = ? 
-      ORDER BY featured DESC, created_at DESC
-    `,
-      [category]
-    );
-
-    res.json({
-      success: true,
-      data: rows,
-      count: rows.length,
-      category,
-    });
-  } catch (error) {
-    console.error('Error fetching projects by category:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch projects',
-    });
-  }
-});
-
-// Get featured projects
+// Get featured projects using stored procedure
 router.get('/featured', async (req, res) => {
   try {
-    const db = getDB();
-    const [rows] = await db.execute(`
-      SELECT * FROM projects 
-      WHERE featured = true 
-      ORDER BY created_at DESC
-    `);
+    const { limit = 6 } = req.query;
+    const result = await getFeaturedProjects(parseInt(limit));
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error,
+      });
+    }
 
     res.json({
       success: true,
-      data: rows,
-      count: rows.length,
+      data: result.data,
+      count: result.count,
     });
   } catch (error) {
     console.error('Error fetching featured projects:', error);
@@ -80,29 +92,136 @@ router.get('/featured', async (req, res) => {
   }
 });
 
-// Get single project by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const db = getDB();
+// Get projects by category using stored procedure
+router.get(
+  '/category/:category',
+  validatePaginationParams,
+  async (req, res) => {
+    try {
+      const { category } = req.params;
+      const { limit = 12, offset = 0 } = req.query;
 
-    const [rows] = await db.execute(
-      `
-      SELECT * FROM projects WHERE id = ?
-    `,
-      [id]
-    );
+      // Validate category
+      const validCategories = [
+        'web',
+        'mobile',
+        '3d',
+        'animation',
+        'illustration',
+        'game',
+        'other',
+      ];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid category',
+        });
+      }
 
-    if (rows.length === 0) {
-      return res.status(404).json({
+      const result = await getProjectsByCategory(
+        category,
+        parseInt(limit),
+        parseInt(offset)
+      );
+
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          error: result.error,
+        });
+      }
+
+      res.json({
+        success: true,
+        data: result.data,
+        count: result.count,
+        category,
+        pagination: {
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          hasMore: result.count === parseInt(limit),
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching projects by category:', error);
+      res.status(500).json({
         success: false,
-        error: 'Project not found',
+        error: 'Failed to fetch projects by category',
+      });
+    }
+  }
+);
+
+// Search projects using stored procedure
+router.get('/search', validateSearchParams, async (req, res) => {
+  try {
+    const { q: searchTerm, limit = 20 } = req.query;
+
+    const result = await searchProjects(searchTerm, parseInt(limit));
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error,
       });
     }
 
     res.json({
       success: true,
-      data: rows[0],
+      data: result.data,
+      count: result.count,
+      searchTerm,
+    });
+  } catch (error) {
+    console.error('Error searching projects:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search projects',
+    });
+  }
+});
+
+// Get project statistics using stored procedure
+router.get('/stats', async (req, res) => {
+  try {
+    const result = await getProjectStats();
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error('Error fetching project stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch project statistics',
+    });
+  }
+});
+
+// Get single project by ID
+router.get('/id/:id', validateIdParam, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getProjectById(id);
+
+    if (!result.success) {
+      return res.status(result.code || 500).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.data,
     });
   } catch (error) {
     console.error('Error fetching project:', error);
@@ -113,190 +232,51 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new project (protected route)
-router.post('/', async (req, res) => {
+// Get single project by slug
+router.get('/slug/:slug', async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      category,
-      technologies,
-      image_url,
-      video_url,
-      model_url,
-      live_url,
-      github_url,
-      featured = false,
-    } = req.body;
+    const { slug } = req.params;
 
-    if (!title || !description || !category) {
+    // Validate slug format
+    if (!/^[a-z0-9-]+$/.test(slug)) {
       return res.status(400).json({
         success: false,
-        error: 'Title, description, and category are required',
+        error: 'Invalid slug format',
       });
     }
 
-    const db = getDB();
-    const [result] = await db.execute(
-      `
-      INSERT INTO projects (
-        title, description, category, technologies, 
-        image_url, video_url, model_url, live_url, github_url, featured
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        title,
-        description,
-        category,
-        JSON.stringify(technologies || []),
-        image_url || null,
-        video_url || null,
-        model_url || null,
-        live_url || null,
-        github_url || null,
-        featured,
-      ]
-    );
+    const result = await getProjectBySlug(slug);
 
-    const [newProject] = await db.execute(
-      `
-      SELECT * FROM projects WHERE id = ?
-    `,
-      [result.insertId]
-    );
-
-    res.status(201).json({
-      success: true,
-      data: newProject[0],
-      message: 'Project created successfully',
-    });
-  } catch (error) {
-    console.error('Error creating project:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create project',
-    });
-  }
-});
-
-// Update project (protected route)
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      title,
-      description,
-      category,
-      technologies,
-      image_url,
-      video_url,
-      model_url,
-      live_url,
-      github_url,
-      featured,
-    } = req.body;
-
-    const db = getDB();
-
-    // Check if project exists
-    const [existing] = await db.execute(
-      `
-      SELECT id FROM projects WHERE id = ?
-    `,
-      [id]
-    );
-
-    if (existing.length === 0) {
-      return res.status(404).json({
+    if (!result.success) {
+      return res.status(result.code || 500).json({
         success: false,
-        error: 'Project not found',
-      });
-    }
-
-    // Update project
-    await db.execute(
-      `
-      UPDATE projects SET
-        title = COALESCE(?, title),
-        description = COALESCE(?, description),
-        category = COALESCE(?, category),
-        technologies = COALESCE(?, technologies),
-        image_url = COALESCE(?, image_url),
-        video_url = COALESCE(?, video_url),
-        model_url = COALESCE(?, model_url),
-        live_url = COALESCE(?, live_url),
-        github_url = COALESCE(?, github_url),
-        featured = COALESCE(?, featured),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `,
-      [
-        title,
-        description,
-        category,
-        JSON.stringify(technologies),
-        image_url,
-        video_url,
-        model_url,
-        live_url,
-        github_url,
-        featured,
-        id,
-      ]
-    );
-
-    const [updatedProject] = await db.execute(
-      `
-      SELECT * FROM projects WHERE id = ?
-    `,
-      [id]
-    );
-
-    res.json({
-      success: true,
-      data: updatedProject[0],
-      message: 'Project updated successfully',
-    });
-  } catch (error) {
-    console.error('Error updating project:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update project',
-    });
-  }
-});
-
-// Delete project (protected route)
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const db = getDB();
-
-    const [result] = await db.execute(
-      `
-      DELETE FROM projects WHERE id = ?
-    `,
-      [id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Project not found',
+        error: result.error,
       });
     }
 
     res.json({
       success: true,
-      message: 'Project deleted successfully',
+      data: result.data,
     });
   } catch (error) {
-    console.error('Error deleting project:', error);
+    console.error('Error fetching project by slug:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete project',
+      error: 'Failed to fetch project',
     });
   }
+});
+
+// =====================================================
+// ERROR HANDLING MIDDLEWARE
+// =====================================================
+
+// Handle 404 for undefined routes
+router.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Route not found',
+  });
 });
 
 export default router;
